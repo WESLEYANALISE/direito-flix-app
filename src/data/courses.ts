@@ -1,4 +1,3 @@
-
 import { CourseType } from "../components/CourseCard";
 
 export const courses: CourseType[] = [
