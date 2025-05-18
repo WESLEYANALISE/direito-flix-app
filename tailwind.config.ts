@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -51,6 +52,14 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				netflix: {
+					background: '#141414',
+					card: '#181818',
+					text: '#E5E5E5',
+					accent: '#E50914',
+					secondary: '#808080',
+					hover: '#272727'
 				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
