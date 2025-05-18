@@ -46,7 +46,7 @@ const Index = () => {
         <div className="relative h-[50vh] mb-10 overflow-hidden rounded-lg">
           <div className="absolute inset-0 bg-gradient-to-t from-netflix-background to-transparent z-10"></div>
           <img src="https://images.unsplash.com/photo-1505664194779-8beaceb93744?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" alt="Direito" className="w-full h-full object-cover" />
-          <div className="absolute bottom-0 left-0 z-20 p-8 w-full md:w-2/3">
+          <div className="absolute bottom-0 left-0 z-20 p-8 w-full md:w-2/3 px-[26px] py-[33px] my-0">
             <h1 className="text-4xl font-bold mb-3">JurisCursos</h1>
             <p className="text-lg mb-4">Sua plataforma de cursos jurídicos para todas as áreas do Direito</p>
             
