@@ -11,6 +11,7 @@ import AreaDetail from "./pages/AreaDetail";
 import SearchPage from "./pages/SearchPage";
 import MyCourses from "./pages/MyCourses";
 import NotFound from "./pages/NotFound";
+import Favorites from "./pages/Favorites";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="area/:areaName" element={<AreaDetail />} />
             <Route path="search" element={<SearchPage />} />
             <Route path="my-courses" element={<MyCourses />} />
+            <Route path="favorites" element={<Favorites />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

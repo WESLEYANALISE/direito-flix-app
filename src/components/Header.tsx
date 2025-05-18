@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { BookOpen, Search, Home } from "lucide-react";
+import { BookOpen, Search, Home, Bookmark } from "lucide-react";
 
 const Header = () => {
   return (
@@ -12,11 +12,12 @@ const Header = () => {
         <nav className="flex space-x-6">
           <Link to="/" className="text-netflix-text hover:text-netflix-accent">Início</Link>
           <Link to="/search" className="text-netflix-text hover:text-netflix-accent">Buscar</Link>
-          <Link to="/my-courses" className="text-netflix-text hover:text-netflix-accent">Meus Cursos</Link>
+          <Link to="/my-courses" className="text-netflix-text hover:text-netflix-accent">Concluídos</Link>
+          <Link to="/favorites" className="text-netflix-text hover:text-netflix-accent">Favoritos</Link>
         </nav>
       </div>
       
-      {/* Mobile navigation - moved from MobileFooter to Header */}
+      {/* Mobile navigation */}
       <div className="flex md:hidden justify-around items-center">
         <Link to="/" className="flex flex-col items-center text-netflix-text hover:text-netflix-accent">
           <Home size={24} />
@@ -28,7 +29,11 @@ const Header = () => {
         </Link>
         <Link to="/my-courses" className="flex flex-col items-center text-netflix-text hover:text-netflix-accent">
           <BookOpen size={24} />
-          <span className="text-xs mt-1">Meus Cursos</span>
+          <span className="text-xs mt-1">Concluídos</span>
+        </Link>
+        <Link to="/favorites" className="flex flex-col items-center text-netflix-text hover:text-netflix-accent">
+          <Bookmark size={24} />
+          <span className="text-xs mt-1">Favoritos</span>
         </Link>
       </div>
     </header>
