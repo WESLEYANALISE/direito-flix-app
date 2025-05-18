@@ -12,6 +12,7 @@ export interface Course {
   download: string;
   dificuldade: string;
   is_favorite?: boolean;
+  is_completed?: boolean;
 }
 
 export interface AreaStats {
@@ -33,10 +34,12 @@ export const fetchCoursesByArea = async (): Promise<Record<string, Course[]>> =>
     return {};
   }
   
-  // Fetch favorites if user is logged in
+  // Fetch favorites and completed courses if user is logged in
   let favorites: Record<number, boolean> = {};
+  let completed: Record<number, boolean> = {};
   
   if (userId) {
+    // Get favorites
     const { data: favoritesData, error: favoritesError } = await supabase
       .from('user_course_favorites')
       .select('course_id')
@@ -48,18 +51,32 @@ export const fetchCoursesByArea = async (): Promise<Record<string, Course[]>> =>
         return acc;
       }, {} as Record<number, boolean>);
     }
+    
+    // Get completed courses
+    const { data: completedData, error: completedError } = await supabase
+      .from('user_course_completed')
+      .select('course_id')
+      .eq('user_id', userId);
+    
+    if (!completedError && completedData) {
+      completed = completedData.reduce((acc, comp) => {
+        acc[comp.course_id] = true;
+        return acc;
+      }, {} as Record<number, boolean>);
+    }
   }
   
-  // Add favorite status to courses
-  const coursesWithFavorites = data?.map((course: Course) => ({
+  // Add favorite and completed status to courses
+  const coursesWithStatus = data?.map((course: Course) => ({
     ...course,
-    is_favorite: favorites[course.id] || false
+    is_favorite: favorites[course.id] || false,
+    is_completed: completed[course.id] || false
   }));
 
   // Group courses by area
   const coursesByArea: Record<string, Course[]> = {};
   
-  coursesWithFavorites?.forEach((course: Course) => {
+  coursesWithStatus?.forEach((course: Course) => {
     if (!coursesByArea[course.area]) {
       coursesByArea[course.area] = [];
     }
@@ -116,10 +133,12 @@ export const fetchCourseById = async (id: number): Promise<Course | null> => {
     return null;
   }
   
-  // Check if course is favorited
+  // Check if course is favorited and completed
   let isFavorite = false;
+  let isCompleted = false;
   
   if (userId) {
+    // Check favorite status
     const { data: favoriteData } = await supabase
       .from('user_course_favorites')
       .select('*')
@@ -128,9 +147,23 @@ export const fetchCourseById = async (id: number): Promise<Course | null> => {
       .maybeSingle();
     
     isFavorite = !!favoriteData;
+    
+    // Check completed status
+    const { data: completedData } = await supabase
+      .from('user_course_completed')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('course_id', id)
+      .maybeSingle();
+    
+    isCompleted = !!completedData;
   }
 
-  return { ...data, is_favorite: isFavorite } as Course;
+  return { 
+    ...data, 
+    is_favorite: isFavorite,
+    is_completed: isCompleted
+  } as Course;
 };
 
 export const fetchCoursesByAreaName = async (areaName: string): Promise<Course[]> => {
@@ -148,10 +181,12 @@ export const fetchCoursesByAreaName = async (areaName: string): Promise<Course[]
     return [];
   }
   
-  // Fetch favorites if user is logged in
+  // Fetch favorites and completed courses if user is logged in
   let favorites: Record<number, boolean> = {};
+  let completed: Record<number, boolean> = {};
   
   if (userId) {
+    // Get favorites
     const { data: favoritesData } = await supabase
       .from('user_course_favorites')
       .select('course_id')
@@ -163,12 +198,26 @@ export const fetchCoursesByAreaName = async (areaName: string): Promise<Course[]
         return acc;
       }, {} as Record<number, boolean>);
     }
+    
+    // Get completed courses
+    const { data: completedData } = await supabase
+      .from('user_course_completed')
+      .select('course_id')
+      .eq('user_id', userId);
+    
+    if (completedData) {
+      completed = completedData.reduce((acc, comp) => {
+        acc[comp.course_id] = true;
+        return acc;
+      }, {} as Record<number, boolean>);
+    }
   }
   
-  // Add favorite status to courses
+  // Add favorite and completed status to courses
   return data.map((course: Course) => ({
     ...course,
-    is_favorite: favorites[course.id] || false
+    is_favorite: favorites[course.id] || false,
+    is_completed: completed[course.id] || false
   }));
 };
 
@@ -203,9 +252,70 @@ export const fetchFavoriteCourses = async (): Promise<Course[]> => {
     return [];
   }
   
+  // Get completed courses
+  const { data: completedData } = await supabase
+    .from('user_course_completed')
+    .select('course_id')
+    .eq('user_id', userId);
+  
+  const completedMap = (completedData || []).reduce((acc, item) => {
+    acc[item.course_id] = true;
+    return acc;
+  }, {} as Record<number, boolean>);
+  
   return courses.map((course: Course) => ({
     ...course,
-    is_favorite: true
+    is_favorite: true,
+    is_completed: completedMap[course.id] || false
+  }));
+};
+
+export const fetchCompletedCourses = async (): Promise<Course[]> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id;
+  
+  if (!userId) {
+    return [];
+  }
+  
+  // Get user's completed course IDs
+  const { data: completed, error: completedError } = await supabase
+    .from('user_course_completed')
+    .select('course_id')
+    .eq('user_id', userId);
+  
+  if (completedError || !completed || completed.length === 0) {
+    return [];
+  }
+  
+  const completedIds = completed.map(c => c.course_id);
+  
+  // Get course details for completed courses
+  const { data: courses, error: coursesError } = await supabase
+    .from('cursos_narrados')
+    .select('*')
+    .in('id', completedIds);
+  
+  if (coursesError) {
+    console.error("Error fetching completed courses:", coursesError);
+    return [];
+  }
+  
+  // Get favorite courses
+  const { data: favoritesData } = await supabase
+    .from('user_course_favorites')
+    .select('course_id')
+    .eq('user_id', userId);
+  
+  const favoritesMap = (favoritesData || []).reduce((acc, item) => {
+    acc[item.course_id] = true;
+    return acc;
+  }, {} as Record<number, boolean>);
+  
+  return courses.map((course: Course) => ({
+    ...course,
+    is_completed: true,
+    is_favorite: favoritesMap[course.id] || false
   }));
 };
 

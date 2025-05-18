@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Heart } from "lucide-react";
+import { Heart, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -25,15 +25,22 @@ export interface Course {
   download: string;
   dificuldade: string;
   is_favorite?: boolean;
+  is_completed?: boolean;
 }
 
 interface CourseCardProps {
   course: Course;
   showFavoriteButton?: boolean;
+  showCompletedButton?: boolean;
 }
 
-const CourseCard = ({ course, showFavoriteButton = false }: CourseCardProps) => {
+const CourseCard = ({ 
+  course, 
+  showFavoriteButton = false,
+  showCompletedButton = false 
+}: CourseCardProps) => {
   const [isFavorite, setIsFavorite] = useState(course.is_favorite || false);
+  const [isCompleted, setIsCompleted] = useState(course.is_completed || false);
   
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent navigation when clicking the heart
@@ -97,6 +104,68 @@ const CourseCard = ({ course, showFavoriteButton = false }: CourseCardProps) => 
     }
   };
   
+  const toggleCompleted = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation();
+    
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        toast({
+          title: "Login necessário",
+          description: "Faça login para marcar cursos como concluídos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { data: existingCompleted } = await supabase
+        .from('user_course_completed')
+        .select('*')
+        .eq('course_id', course.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingCompleted) {
+        // Remove from completed
+        await supabase
+          .from('user_course_completed')
+          .delete()
+          .eq('course_id', course.id)
+          .eq('user_id', userId);
+          
+        setIsCompleted(false);
+        toast({
+          title: "Curso desmarcado",
+          description: `${course.materia} foi removido dos cursos concluídos.`,
+        });
+      } else {
+        // Add to completed
+        await supabase
+          .from('user_course_completed')
+          .insert([{ 
+            course_id: course.id,
+            user_id: userId
+          }]);
+          
+        setIsCompleted(true);
+        toast({
+          title: "Curso concluído!",
+          description: `${course.materia} foi marcado como concluído.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling completed:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do curso.",
+        variant: "destructive",
+      });
+    }
+  };
+  
   return (
     <Link to={`/course/${course.id}`} className="block">
       <div className="netflix-card relative">
@@ -119,17 +188,31 @@ const CourseCard = ({ course, showFavoriteButton = false }: CourseCardProps) => 
             </span>
           </div>
           
-          {showFavoriteButton && (
-            <button 
-              onClick={toggleFavorite}
-              className="absolute top-2 right-2 bg-black bg-opacity-60 p-1.5 rounded-full"
-            >
-              <Heart 
-                size={18} 
-                className={`${isFavorite ? 'fill-netflix-accent text-netflix-accent' : 'text-white'}`}
-              />
-            </button>
-          )}
+          <div className="absolute top-2 right-2 flex flex-col gap-2">
+            {showFavoriteButton && (
+              <button 
+                onClick={toggleFavorite}
+                className="bg-black bg-opacity-60 p-1.5 rounded-full"
+              >
+                <Heart 
+                  size={18} 
+                  className={`${isFavorite ? 'fill-netflix-accent text-netflix-accent' : 'text-white'}`}
+                />
+              </button>
+            )}
+            
+            {showCompletedButton && (
+              <button 
+                onClick={toggleCompleted}
+                className="bg-black bg-opacity-60 p-1.5 rounded-full"
+              >
+                <CheckCircle 
+                  size={18} 
+                  className={`${isCompleted ? 'fill-green-500 text-green-500' : 'text-white'}`}
+                />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </Link>

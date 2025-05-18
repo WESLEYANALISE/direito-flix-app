@@ -4,7 +4,7 @@ import { Home, BookOpen, Search } from "lucide-react";
 
 const MobileFooter = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 border-t border-zinc-800 py-2 px-4 md:hidden">
+    <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-90 border-b border-zinc-800 py-2 px-4 md:hidden z-50">
       <div className="flex justify-around items-center">
         <Link to="/" className="flex flex-col items-center text-netflix-text hover:text-netflix-accent">
           <Home size={24} />

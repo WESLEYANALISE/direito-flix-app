@@ -2,7 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { fetchCourseById, Course } from "../services/courseService";
-import { ArrowLeft, Heart } from "lucide-react";
+import { ArrowLeft, Heart, CheckCircle } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ const CourseDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showWebView, setShowWebView] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   
   useEffect(() => {
     const loadCourse = async () => {
@@ -33,6 +34,7 @@ const CourseDetail = () => {
       
       setCourse(courseData);
       setIsFavorite(courseData.is_favorite || false);
+      setIsCompleted(courseData.is_completed || false);
       setLoading(false);
     };
     
@@ -95,6 +97,67 @@ const CourseDetail = () => {
       toast({
         title: "Erro",
         description: "Não foi possível atualizar seus favoritos.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const toggleCompleted = async () => {
+    if (!course) return;
+    
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        toast({
+          title: "Login necessário",
+          description: "Faça login para marcar cursos como concluídos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { data: existingCompleted } = await supabase
+        .from('user_course_completed')
+        .select('*')
+        .eq('course_id', course.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingCompleted) {
+        // Remove from completed
+        await supabase
+          .from('user_course_completed')
+          .delete()
+          .eq('course_id', course.id)
+          .eq('user_id', userId);
+          
+        setIsCompleted(false);
+        toast({
+          title: "Curso desmarcado",
+          description: `${course.materia} foi removido dos cursos concluídos.`,
+        });
+      } else {
+        // Add to completed
+        await supabase
+          .from('user_course_completed')
+          .insert([{ 
+            course_id: course.id,
+            user_id: userId
+          }]);
+          
+        setIsCompleted(true);
+        toast({
+          title: "Curso concluído!",
+          description: `${course.materia} foi marcado como concluído.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling completed:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o status do curso.",
         variant: "destructive",
       });
     }
@@ -170,19 +233,35 @@ const CourseDetail = () => {
               alt={course.materia} 
               className="w-full h-full object-cover"
             />
-            <button
-              onClick={toggleFavorite}
-              className="absolute top-4 right-4 z-20 bg-black bg-opacity-60 p-2 rounded-full"
-            >
-              <Heart 
-                size={24} 
-                className={`${isFavorite ? 'fill-netflix-accent text-netflix-accent' : 'text-white'}`}
-              />
-            </button>
+            <div className="absolute top-4 right-4 z-20 flex gap-2">
+              <button
+                onClick={toggleCompleted}
+                className="bg-black bg-opacity-60 p-2 rounded-full"
+              >
+                <CheckCircle 
+                  size={24} 
+                  className={`${isCompleted ? 'fill-green-500 text-green-500' : 'text-white'}`}
+                />
+              </button>
+              <button
+                onClick={toggleFavorite}
+                className="bg-black bg-opacity-60 p-2 rounded-full"
+              >
+                <Heart 
+                  size={24} 
+                  className={`${isFavorite ? 'fill-netflix-accent text-netflix-accent' : 'text-white'}`}
+                />
+              </button>
+            </div>
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-2">{course.materia}</h1>
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-3xl font-bold">{course.materia}</h1>
+              <div className="bg-green-600 text-white text-xs px-2 py-1 rounded-md">
+                Atualizado 2025
+              </div>
+            </div>
             <p className="text-netflix-secondary mb-4">
               {course.area} • Sequência {course.sequencia} • Dificuldade: {course.dificuldade}
             </p>
@@ -193,6 +272,16 @@ const CourseDetail = () => {
               </button>
               <button onClick={downloadMaterial} className="netflix-secondary-button">
                 Baixar Material de Apoio
+              </button>
+              <button 
+                onClick={toggleCompleted} 
+                className={`flex items-center gap-2 px-4 py-2 rounded ${
+                  isCompleted 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-gray-700 text-white'
+                }`}
+              >
+                <CheckCircle size={18} /> {isCompleted ? 'Concluído' : 'Marcar como Concluído'}
               </button>
             </div>
             
