@@ -1,10 +1,31 @@
 
 import { Link } from "react-router-dom";
-import { Course } from "../services/courseService";
 import { Heart } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+
+// Export the CourseType interface so other files can import it
+export interface CourseType {
+  id: number;
+  title: string;
+  area: string;
+  coverImage: string;
+  shortDescription: string;
+}
+
+export interface Course {
+  id: number;
+  area: string;
+  sequencia: string;
+  link: string;
+  materia: string;
+  capa: string;
+  sobre: string;
+  download: string;
+  dificuldade: string;
+  is_favorite?: boolean;
+}
 
 interface CourseCardProps {
   course: Course;
@@ -19,10 +40,23 @@ const CourseCard = ({ course, showFavoriteButton = false }: CourseCardProps) => 
     e.stopPropagation();
     
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        toast({
+          title: "Login necessário",
+          description: "Faça login para adicionar cursos aos favoritos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const { data: existingFavorite } = await supabase
         .from('user_course_favorites')
         .select('*')
         .eq('course_id', course.id)
+        .eq('user_id', userId)
         .maybeSingle();
       
       if (existingFavorite) {
@@ -30,7 +64,8 @@ const CourseCard = ({ course, showFavoriteButton = false }: CourseCardProps) => 
         await supabase
           .from('user_course_favorites')
           .delete()
-          .eq('course_id', course.id);
+          .eq('course_id', course.id)
+          .eq('user_id', userId);
           
         setIsFavorite(false);
         toast({
@@ -38,10 +73,13 @@ const CourseCard = ({ course, showFavoriteButton = false }: CourseCardProps) => 
           description: `${course.materia} foi removido dos seus favoritos.`,
         });
       } else {
-        // Add to favorites
+        // Add to favorites - Fix: Include user_id in the insert
         await supabase
           .from('user_course_favorites')
-          .insert([{ course_id: course.id }]);
+          .insert([{ 
+            course_id: course.id,
+            user_id: userId
+          }]);
           
         setIsFavorite(true);
         toast({
