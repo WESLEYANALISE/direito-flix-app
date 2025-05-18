@@ -1,33 +1,39 @@
 
 import { useState, useEffect } from "react";
 import CourseCategory from "../components/CourseCategory";
-import CourseCard from "../components/CourseCard";
-import { Course, fetchCoursesByArea } from "../services/courseService";
+import AreaShowcase from "../components/AreaShowcase";
+import { fetchAllAreas, fetchFavoriteCourses, getTotalCourseCount, type AreaStats, type Course } from "../services/courseService";
 
 const Index = () => {
-  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
-  const [coursesByArea, setCoursesByArea] = useState<Record<string, Course[]>>({});
+  const [areas, setAreas] = useState<AreaStats[]>([]);
+  const [favoriteCourses, setFavoriteCourses] = useState<Course[]>([]);
+  const [totalCourses, setTotalCourses] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    const loadCourses = async () => {
+    const loadData = async () => {
       setLoading(true);
-      const courses = await fetchCoursesByArea();
       
-      // Get featured courses (first 4 from all areas)
-      const featured: Course[] = [];
-      Object.values(courses).forEach(areasCourses => {
-        if (areasCourses.length > 0) {
-          featured.push(areasCourses[0]);
-        }
-      });
-      
-      setFeaturedCourses(featured.slice(0, 4));
-      setCoursesByArea(courses);
-      setLoading(false);
+      try {
+        // Load all areas with their course counts
+        const areasData = await fetchAllAreas();
+        setAreas(areasData);
+        
+        // Load favorite courses
+        const favorites = await fetchFavoriteCourses();
+        setFavoriteCourses(favorites);
+        
+        // Get total course count
+        const total = await getTotalCourseCount();
+        setTotalCourses(total);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    loadCourses();
+    loadData();
   }, []);
 
   if (loading) {
@@ -50,28 +56,37 @@ const Index = () => {
           />
           <div className="absolute bottom-0 left-0 z-20 p-8 w-full md:w-2/3">
             <h1 className="text-4xl font-bold mb-3">JurisCursos</h1>
-            <p className="text-lg mb-6">Sua plataforma de cursos jurídicos para todas as áreas do Direito</p>
-            <button className="netflix-button">Comece Agora</button>
+            <p className="text-lg mb-2">Sua plataforma de cursos jurídicos para todas as áreas do Direito</p>
+            <p className="text-sm text-netflix-accent font-semibold mb-6">
+              {totalCourses} cursos disponíveis em {areas.length} áreas do Direito
+            </p>
+            <a href="#areas" className="netflix-button">Explorar Áreas</a>
           </div>
         </div>
       </section>
       
-      <section>
-        <h2 className="text-2xl font-bold mb-6">Cursos em Destaque</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {featuredCourses.map(course => (
-            <CourseCard key={course.id} course={course} />
+      {favoriteCourses.length > 0 && (
+        <section>
+          <CourseCategory 
+            title="Seus Cursos Favoritos" 
+            courses={favoriteCourses}
+            count={favoriteCourses.length}
+          />
+        </section>
+      )}
+
+      <section id="areas">
+        <h2 className="text-2xl font-bold mb-6">Áreas do Direito</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {areas.map(area => (
+            <AreaShowcase 
+              key={area.area} 
+              area={area.area} 
+              courseCount={area.courseCount} 
+            />
           ))}
         </div>
       </section>
-
-      {Object.entries(coursesByArea).map(([area, courses]) => (
-        <CourseCategory 
-          key={area} 
-          title={area} 
-          courses={courses} 
-        />
-      ))}
     </div>
   );
 };

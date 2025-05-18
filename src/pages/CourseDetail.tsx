@@ -2,9 +2,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { fetchCourseById, Course } from "../services/courseService";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Heart } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +15,7 @@ const CourseDetail = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWebView, setShowWebView] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   
   useEffect(() => {
     const loadCourse = async () => {
@@ -30,11 +32,73 @@ const CourseDetail = () => {
       }
       
       setCourse(courseData);
+      setIsFavorite(courseData.is_favorite || false);
       setLoading(false);
     };
     
     loadCourse();
   }, [courseId, navigate]);
+  
+  const toggleFavorite = async () => {
+    if (!course) return;
+    
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      
+      if (!userId) {
+        toast({
+          title: "Login necessário",
+          description: "Faça login para adicionar cursos aos favoritos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { data: existingFavorite } = await supabase
+        .from('user_course_favorites')
+        .select('*')
+        .eq('course_id', course.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingFavorite) {
+        // Remove from favorites
+        await supabase
+          .from('user_course_favorites')
+          .delete()
+          .eq('course_id', course.id)
+          .eq('user_id', userId);
+          
+        setIsFavorite(false);
+        toast({
+          title: "Curso removido dos favoritos",
+          description: `${course.materia} foi removido dos seus favoritos.`,
+        });
+      } else {
+        // Add to favorites
+        await supabase
+          .from('user_course_favorites')
+          .insert([{ 
+            course_id: course.id,
+            user_id: userId
+          }]);
+          
+        setIsFavorite(true);
+        toast({
+          title: "Curso adicionado aos favoritos",
+          description: `${course.materia} foi adicionado aos seus favoritos.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar seus favoritos.",
+        variant: "destructive",
+      });
+    }
+  };
   
   if (loading) {
     return (
@@ -91,6 +155,14 @@ const CourseDetail = () => {
     <div className="pb-12">
       {course && (
         <>
+          <button 
+            onClick={() => navigate("/")} 
+            className="flex items-center text-netflix-secondary hover:text-netflix-accent mb-4"
+          >
+            <ArrowLeft size={18} className="mr-1" />
+            <span>Voltar para Início</span>
+          </button>
+          
           <div className="relative h-[40vh] mb-8 overflow-hidden rounded-lg">
             <div className="absolute inset-0 bg-gradient-to-t from-netflix-background via-transparent to-transparent z-10"></div>
             <img 
@@ -98,6 +170,15 @@ const CourseDetail = () => {
               alt={course.materia} 
               className="w-full h-full object-cover"
             />
+            <button
+              onClick={toggleFavorite}
+              className="absolute top-4 right-4 z-20 bg-black bg-opacity-60 p-2 rounded-full"
+            >
+              <Heart 
+                size={24} 
+                className={`${isFavorite ? 'fill-netflix-accent text-netflix-accent' : 'text-white'}`}
+              />
+            </button>
           </div>
           
           <div className="max-w-4xl mx-auto">
