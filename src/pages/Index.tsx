@@ -2,15 +2,41 @@
 import { useState, useEffect } from "react";
 import CourseCategory from "../components/CourseCategory";
 import CourseCard from "../components/CourseCard";
-import { courses, getLegalAreas, getCoursesByArea } from "../data/courses";
+import { Course, fetchCoursesByArea } from "../services/courseService";
 
 const Index = () => {
-  const [featuredCourses, setFeaturedCourses] = useState(courses.slice(0, 4));
-  const [legalAreas, setLegalAreas] = useState<string[]>([]);
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+  const [coursesByArea, setCoursesByArea] = useState<Record<string, Course[]>>({});
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    setLegalAreas(getLegalAreas());
+    const loadCourses = async () => {
+      setLoading(true);
+      const courses = await fetchCoursesByArea();
+      
+      // Get featured courses (first 4 from all areas)
+      const featured: Course[] = [];
+      Object.values(courses).forEach(areasCourses => {
+        if (areasCourses.length > 0) {
+          featured.push(areasCourses[0]);
+        }
+      });
+      
+      setFeaturedCourses(featured.slice(0, 4));
+      setCoursesByArea(courses);
+      setLoading(false);
+    };
+    
+    loadCourses();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[70vh]">
+        <div className="animate-pulse h-5 w-24 bg-netflix-secondary rounded"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
@@ -39,11 +65,11 @@ const Index = () => {
         </div>
       </section>
 
-      {legalAreas.map(area => (
+      {Object.entries(coursesByArea).map(([area, courses]) => (
         <CourseCategory 
           key={area} 
           title={area} 
-          courses={getCoursesByArea(area)} 
+          courses={courses} 
         />
       ))}
     </div>

@@ -1,9 +1,10 @@
 
-import CourseCard, { CourseType } from './CourseCard';
+import CourseCard from './CourseCard';
+import { Course } from '../services/courseService';
 
 interface CourseCategoryProps {
   title: string;
-  courses: CourseType[];
+  courses: Course[];
 }
 
 const CourseCategory = ({ title, courses }: CourseCategoryProps) => {
