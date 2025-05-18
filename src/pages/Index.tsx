@@ -1,14 +1,17 @@
+
 import { useState, useEffect } from "react";
 import CourseCategory from "../components/CourseCategory";
 import AreaShowcase from "../components/AreaShowcase";
 import { fetchAllAreas, fetchFavoriteCourses, fetchCompletedCourses, getTotalCourseCount, type AreaStats, type Course } from "../services/courseService";
 import { Badge } from "@/components/ui/badge";
+
 const Index = () => {
   const [areas, setAreas] = useState<AreaStats[]>([]);
   const [favoriteCourses, setFavoriteCourses] = useState<Course[]>([]);
   const [completedCourses, setCompletedCourses] = useState<Course[]>([]);
   const [totalCourses, setTotalCourses] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -36,11 +39,13 @@ const Index = () => {
     };
     loadData();
   }, []);
+
   if (loading) {
     return <div className="flex justify-center items-center h-[70vh]">
         <div className="animate-pulse h-5 w-24 bg-netflix-secondary rounded"></div>
       </div>;
   }
+
   return <div className="space-y-10">
       <section>
         <div className="relative h-[50vh] mb-10 overflow-hidden rounded-lg">
@@ -51,28 +56,35 @@ const Index = () => {
             <p className="text-lg mb-4">Sua plataforma de cursos jurídicos para todas as áreas do Direito</p>
             
             <div className="flex flex-wrap gap-2 mb-4 my-0 py-[22px]">
-              <Badge variant="outline" className="bg-black bg-opacity-50 text-white border-none px-3 py-1">
+              <Badge variant="outline" className="bg-black bg-opacity-30 text-white border-none px-3 py-1">
                 {totalCourses} cursos disponíveis
               </Badge>
-              <Badge variant="outline" className="bg-black bg-opacity-50 text-green-400 border-none px-3 py-1">
+              <Badge variant="outline" className="bg-black bg-opacity-30 text-green-400 border-none px-3 py-1">
                 Atualizados 2025
               </Badge>
             </div>
-            
             
             <a href="#areas" className="netflix-button">Explorar Áreas</a>
           </div>
         </div>
       </section>
       
-      
-      
       {completedCourses.length > 0 && <section>
-          <CourseCategory title="Seus Cursos Concluídos" courses={completedCourses} count={completedCourses.length} showCompletedButton={true} />
+          <CourseCategory 
+            title="Seus Cursos Concluídos" 
+            courses={completedCourses} 
+            count={completedCourses.length} 
+            showCompletedButton={true} 
+          />
         </section>}
       
       {favoriteCourses.length > 0 && <section>
-          <CourseCategory title="Seus Cursos Favoritos" courses={favoriteCourses} count={favoriteCourses.length} showFavoriteButton={true} />
+          <CourseCategory 
+            title="Seus Cursos Favoritos" 
+            courses={favoriteCourses} 
+            count={favoriteCourses.length} 
+            showFavoriteButton={true} 
+          />
         </section>}
 
       <section id="areas">
@@ -83,4 +95,5 @@ const Index = () => {
       </section>
     </div>;
 };
+
 export default Index;

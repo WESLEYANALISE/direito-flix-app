@@ -6,9 +6,17 @@ interface CourseCategoryProps {
   title: string;
   courses: Course[];
   count: number;
+  showFavoriteButton?: boolean;
+  showCompletedButton?: boolean;
 }
 
-const CourseCategory = ({ title, courses, count }: CourseCategoryProps) => {
+const CourseCategory = ({ 
+  title, 
+  courses, 
+  count, 
+  showFavoriteButton = false,
+  showCompletedButton = false
+}: CourseCategoryProps) => {
   return (
     <div className="mb-8">
       <div className="flex justify-between items-center mb-4">
@@ -19,7 +27,12 @@ const CourseCategory = ({ title, courses, count }: CourseCategoryProps) => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {courses.map((course) => (
-          <CourseCard key={course.id} course={course} showFavoriteButton={true} />
+          <CourseCard 
+            key={course.id} 
+            course={course} 
+            showFavoriteButton={showFavoriteButton}
+            showCompletedButton={showCompletedButton} 
+          />
         ))}
       </div>
     </div>

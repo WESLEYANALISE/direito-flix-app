@@ -48,9 +48,22 @@ const SearchPage = () => {
         <>
           <p className="text-netflix-secondary mb-4">Encontrados {searchResults.length} resultados para "{searchTerm}"</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {searchResults.map(course => (
-              <CourseCard key={course.id} course={course} />
-            ))}
+            {searchResults.map(course => {
+              // Convert CourseType to Course for compatibility with CourseCard
+              const courseData = {
+                id: course.id,
+                materia: course.title,
+                area: course.area,
+                capa: course.coverImage,
+                sobre: course.shortDescription,
+                sequencia: "1", // Default values for required Course properties
+                link: "",
+                download: "",
+                dificuldade: "Iniciante"
+              };
+              
+              return <CourseCard key={course.id} course={courseData} showFavoriteButton={true} />;
+            })}
           </div>
         </>
       ) : searchTerm !== "" && (

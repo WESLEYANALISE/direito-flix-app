@@ -83,10 +83,10 @@ const CourseCard = ({
         // Add to favorites - Fix: Include user_id in the insert
         await supabase
           .from('user_course_favorites')
-          .insert([{ 
+          .insert({ 
             course_id: course.id,
             user_id: userId
-          }]);
+          });
           
         setIsFavorite(true);
         toast({
@@ -145,10 +145,10 @@ const CourseCard = ({
         // Add to completed
         await supabase
           .from('user_course_completed')
-          .insert([{ 
+          .insert({ 
             course_id: course.id,
             user_id: userId
-          }]);
+          });
           
         setIsCompleted(true);
         toast({

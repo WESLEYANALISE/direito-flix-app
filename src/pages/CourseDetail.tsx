@@ -81,10 +81,10 @@ const CourseDetail = () => {
         // Add to favorites
         await supabase
           .from('user_course_favorites')
-          .insert([{ 
+          .insert({ 
             course_id: course.id,
             user_id: userId
-          }]);
+          });
           
         setIsFavorite(true);
         toast({
@@ -142,10 +142,10 @@ const CourseDetail = () => {
         // Add to completed
         await supabase
           .from('user_course_completed')
-          .insert([{ 
+          .insert({ 
             course_id: course.id,
             user_id: userId
-          }]);
+          });
           
         setIsCompleted(true);
         toast({
@@ -258,7 +258,7 @@ const CourseDetail = () => {
           <div className="max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-3xl font-bold">{course.materia}</h1>
-              <div className="bg-green-600 text-white text-xs px-2 py-1 rounded-md">
+              <div className="bg-black bg-opacity-30 text-green-400 text-xs px-2 py-1 rounded-md">
                 Atualizado 2025
               </div>
             </div>
