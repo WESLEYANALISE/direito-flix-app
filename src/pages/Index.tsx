@@ -62,13 +62,13 @@ const Index = () => {
           />
           <div className="absolute bottom-0 left-0 z-20 p-8 w-full md:w-2/3">
             <h1 className="text-4xl font-bold mb-3">JurisCursos</h1>
-            <p className="text-lg mb-2">Sua plataforma de cursos jurídicos para todas as áreas do Direito</p>
+            <p className="text-lg mb-4">Sua plataforma de cursos jurídicos para todas as áreas do Direito</p>
             
-            <div className="flex flex-wrap gap-3 mb-4">
-              <Badge variant="outline" className="bg-netflix-accent text-white border-none text-lg px-4 py-2">
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge variant="outline" className="bg-black bg-opacity-50 text-white border-none px-3 py-1">
                 {totalCourses} cursos disponíveis
               </Badge>
-              <Badge variant="outline" className="bg-green-600 text-white border-none text-lg px-4 py-2">
+              <Badge variant="outline" className="bg-black bg-opacity-50 text-green-400 border-none px-3 py-1">
                 Atualizados 2025
               </Badge>
             </div>
@@ -85,10 +85,10 @@ const Index = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">Biblioteca de Cursos</h2>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-netflix-accent text-white border-none">
+            <Badge variant="outline" className="bg-black bg-opacity-70 text-white border-none">
               {totalCourses} cursos disponíveis
             </Badge>
-            <Badge variant="outline" className="bg-green-600 text-white border-none">
+            <Badge variant="outline" className="bg-green-700 bg-opacity-70 text-white border-none">
               2025
             </Badge>
           </div>

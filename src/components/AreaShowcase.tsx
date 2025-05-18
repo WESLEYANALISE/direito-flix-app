@@ -65,7 +65,7 @@ const AreaShowcase = ({ area, courseCount, imageUrl }: AreaShowcaseProps) => {
         <div className="absolute bottom-0 left-0 z-20 p-4 w-full">
           <h3 className="text-lg font-bold text-white">{area}</h3>
           <div className="flex justify-between items-center mt-1">
-            <span className="text-sm text-white bg-netflix-accent bg-opacity-70 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-white bg-black bg-opacity-60 px-2 py-0.5 rounded">
               {courseCount} {courseCount === 1 ? 'curso' : 'cursos'}
             </span>
           </div>
