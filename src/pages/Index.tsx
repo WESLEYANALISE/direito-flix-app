@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import CourseCategory from "../components/CourseCategory";
+import CourseCard from "../components/CourseCard";
 import { courses, getLegalAreas, getCoursesByArea } from "../data/courses";
 
 const Index = () => {
