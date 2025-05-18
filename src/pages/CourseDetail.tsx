@@ -138,7 +138,7 @@ const CourseDetail = () => {
   }
   if (showWebView && course) {
     return <div className="fixed inset-0 bg-black flex flex-col z-50">
-        <div className="bg-black p-4 flex items-center">
+        <div className="bg-black p-4 flex items-center px-[15px] py-[6px]">
           <Button variant="ghost" onClick={() => setShowWebView(false)} className="text-white flex items-center gap-1 px-[5px]">
             <ArrowLeft size={18} /> Voltar
           </Button>
